@@ -1,9 +1,10 @@
 import {Command, flags} from '@oclif/command';
 import axios from 'axios';
-import * as extractArchive from 'extract-zip';
-import * as fs from 'fs';
+import * as files from '../util/files';
 import * as path from 'path';
 import { GitHubRelease } from '../util/data';
+import * as fs from 'fs';
+import { exec } from 'child_process';
 
 export default class NewCommand extends Command {
   
@@ -25,56 +26,32 @@ export default class NewCommand extends Command {
 
   async run() {
     const { args, flags } = this.parse(NewCommand);
-    const absolutePath = path.resolve(process.cwd(), args.appName);
-    const kaktusPath = path.resolve(absolutePath, 'kaktus.zip');
+    const appPath = path.resolve(process.cwd(), args.appName);
+    const archivePath = path.resolve(appPath, 'kaktus.zip');
 
     try {
-      fs.mkdirSync(absolutePath);
-      const releaseFile = await this.fetchReleaseArchive();
-      fs.writeFileSync(kaktusPath, releaseFile);
-      const extractedDir = await this.extractReleaseArchive(absolutePath, kaktusPath);
+      files.createDirectory(appPath);
+      const releaseArchive = await this.fetchReleaseArchive();
+      files.write(archivePath, releaseArchive);
+      const extractDirPath = await files.extractArchive(archivePath, appPath);
       this.log('Generating application');
-      this.moveFiles(path.resolve(absolutePath, extractedDir), absolutePath);
-      this.deleteDirectory(extractedDir);
-      fs.unlinkSync(kaktusPath);
+      files.moveDirectory(extractDirPath, appPath);
+      files.deleteDirectory(extractDirPath);
+      files.unlink(archivePath);
+      process.chdir(args.appName);
+      this.log('Executing "npm install"');
+      exec('npm install');
       this.log(`Done !`);
     } catch (err) {
       this.error(`Could not create application : ${JSON.stringify((err as Error).message)}`);
     }
-    this.log(`Creating Kaktus application in "${absolutePath}"`);
+    this.log(`Creating Kaktus application in "${appPath}"`);
   }
 
   private async fetchReleaseArchive(): Promise<ArrayBuffer> {
     const releaseRes = await axios.get<GitHubRelease>('https://api.github.com/repos/Lelberto/kaktus/releases/latest');
-    this.log(`Downloading Kaktus latest release from ${releaseRes.data.zipball_url}`);
+    this.log(`Downloading latest Kaktus release from ${releaseRes.data.zipball_url}`);
     const fileRes = await axios.get<ArrayBuffer>(releaseRes.data.zipball_url, { responseType: 'arraybuffer' });
     return fileRes.data;
-  }
-
-  private async extractReleaseArchive(dirPath: string, archiveName: string): Promise<string> {
-    this.log(`Extracting archive`);
-    await extractArchive(path.resolve(dirPath, archiveName), { dir: dirPath });
-    return fs.readdirSync(dirPath).find(filePath => filePath.startsWith('Lelberto-kaktus-')) as string;
-  }
-
-  private moveFiles(sourcePath: string, destinationPath: string): void {
-    // TODO Error in ".xxx" files
-    // TODO Make recursive move for subfolders of Kaktus application
-    fs.readdirSync(sourcePath).forEach(filePath => {
-      fs.renameSync(filePath, path.resolve(destinationPath, filePath));
-    });
-  }
-
-  private deleteDirectory(dirPath: string): void {
-    if (fs.existsSync(dirPath)) {
-      fs.readdirSync(dirPath).forEach(filePath => {
-        if (fs.lstatSync(filePath).isDirectory()) {
-          this.deleteDirectory(filePath);
-        } else {
-          fs.unlinkSync(filePath);
-        }
-      });
-      fs.rmdirSync(dirPath);
-    }
   }
 }
