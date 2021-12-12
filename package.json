@@ -1,7 +1,7 @@
 {
   "name": "kaktus-cli",
   "description": "CLI for Kaktus",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "author": "Lelberto @Lelberto",
   "bin": {
     "kaktus": "./bin/run"
@@ -29,7 +29,8 @@
   ],
   "homepage": "https://github.com/Lelberto/kaktus-cli",
   "keywords": [
-    "kaktus", "cli"
+    "kaktus",
+    "cli"
   ],
   "license": "MIT",
   "main": "lib/index.js",
