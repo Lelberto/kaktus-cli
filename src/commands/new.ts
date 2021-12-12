@@ -10,7 +10,7 @@ import * as network from '../util/network';
  * 
  * This command is used to create new Kaktus application.
  */
-export default class NewCommand extends Command {
+export default class New extends Command {
   
   static description = 'Create a new Kaktus application';
 
@@ -25,7 +25,7 @@ export default class NewCommand extends Command {
   }
 
   async run() {
-    const { args, flags } = this.parse(NewCommand);
+    const { args, flags } = this.parse(New);
     const appPath = path.resolve(process.cwd(), args.appName);
     const archivePath = path.resolve(appPath, 'kaktus.zip');
 
