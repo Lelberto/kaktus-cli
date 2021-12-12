@@ -1,5 +1,4 @@
 import { Command, flags } from '@oclif/command';
-import axios from 'axios';
 import * as path from 'path';
 import * as command from '../util/command';
 import { GitHubRelease } from '../util/data';
