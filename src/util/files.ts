@@ -10,6 +10,10 @@ export function unlink(filePath: string): void {
   unlinkSync(filePath);
 }
 
+export function move(fileSourcePath: string, fileDestinationPath: string): void {
+  renameSync(fileSourcePath, fileDestinationPath);
+}
+
 export function createDirectory(dirPath: string): void {
   mkdirSync(dirPath);
 }
@@ -36,16 +40,36 @@ export function moveDirectory(sourcePath: string, destinationPath: string): void
       moveDirectory(fileSourcePath, fileDestPath);
       deleteDirectory(fileSourcePath);
     } else {
-      renameSync(fileSourcePath, fileDestPath);
+      move(fileSourcePath, fileDestPath);
     }
   }
 }
 
-export async function extractArchive(archivePath: string, destPath: string): Promise<string> {
+export function isDirectory(path: string): boolean {
+  return lstatSync(path).isDirectory();
+}
+
+export async function extractArchive(archivePath: string, destPath: string, options: ExtractArchiveOptions = { exclude: [] }): Promise<string> {
   let archiveDirPath: string = '';
   await extract(archivePath, {
     dir: destPath,
-    onEntry: ({ fileName }) => archiveDirPath = fileName.substring(0, fileName.indexOf('/'))
+    onEntry: ({ fileName,  }) => {
+      if (archiveDirPath === '') {
+        archiveDirPath = fileName.substring(0, fileName.indexOf('/'));
+      }
+    }
   });
+  for (let excludedPath of options.exclude) {
+    excludedPath = resolve(destPath, archiveDirPath, excludedPath);
+    if (isDirectory(excludedPath)) {
+      deleteDirectory(excludedPath);
+    } else {
+      unlink(excludedPath);
+    }
+  }
   return resolve(destPath, archiveDirPath);
+}
+
+interface ExtractArchiveOptions {
+  exclude: string[];
 }

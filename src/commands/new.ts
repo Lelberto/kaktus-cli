@@ -1,10 +1,9 @@
-import {Command, flags} from '@oclif/command';
+import { Command, flags } from '@oclif/command';
 import axios from 'axios';
-import * as files from '../util/files';
 import * as path from 'path';
+import * as command from '../util/command';
 import { GitHubRelease } from '../util/data';
-import * as fs from 'fs';
-import { exec } from 'child_process';
+import * as files from '../util/files';
 
 export default class NewCommand extends Command {
   
@@ -29,23 +28,24 @@ export default class NewCommand extends Command {
     const appPath = path.resolve(process.cwd(), args.appName);
     const archivePath = path.resolve(appPath, 'kaktus.zip');
 
+    this.log(`Creating Kaktus application in "${appPath}"`);
     try {
       files.createDirectory(appPath);
       const releaseArchive = await this.fetchReleaseArchive();
       files.write(archivePath, releaseArchive);
-      const extractDirPath = await files.extractArchive(archivePath, appPath);
+      const extractDirPath = await files.extractArchive(archivePath, appPath, { exclude: ['package-lock.json', 'LICENCE'] });
       this.log('Generating application');
       files.moveDirectory(extractDirPath, appPath);
       files.deleteDirectory(extractDirPath);
       files.unlink(archivePath);
-      process.chdir(args.appName);
+      process.chdir(appPath);
+      files.move('.example.env', '.env');
       this.log('Executing "npm install"');
-      exec('npm install');
-      this.log(`Done !`);
+      await command.run('npm install', data => this.log(data));
+      this.log('Done !');
     } catch (err) {
-      this.error(`Could not create application : ${JSON.stringify((err as Error).message)}`);
+      this.error(`Could not create application : ${err}`);
     }
-    this.log(`Creating Kaktus application in "${appPath}"`);
   }
 
   private async fetchReleaseArchive(): Promise<ArrayBuffer> {
