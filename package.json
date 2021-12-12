@@ -29,7 +29,7 @@
   ],
   "homepage": "https://github.com/Lelberto/kaktus-cli",
   "keywords": [
-    "oclif"
+    "kaktus", "cli"
   ],
   "license": "MIT",
   "main": "lib/index.js",
