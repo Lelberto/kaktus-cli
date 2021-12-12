@@ -4,7 +4,13 @@ import * as path from 'path';
 import * as command from '../util/command';
 import { GitHubRelease } from '../util/data';
 import * as files from '../util/files';
+import * as network from '../util/network';
 
+/**
+ * New command.
+ * 
+ * This command is used to create new Kaktus application.
+ */
 export default class NewCommand extends Command {
   
   static description = 'Create a new Kaktus application';
@@ -16,11 +22,7 @@ export default class NewCommand extends Command {
   }];
 
   static flags = {
-    help: flags.help({char: 'h'}),
-    // flag with a value (-n, --name=VALUE)
-    name: flags.string({char: 'n', description: 'name to print'}),
-    // flag with no value (-f, --force)
-    force: flags.boolean({char: 'f'}),
+    help: flags.help({ char: 'h' })
   }
 
   async run() {
@@ -31,7 +33,9 @@ export default class NewCommand extends Command {
     this.log(`Creating Kaktus application in "${appPath}"`);
     try {
       files.createDirectory(appPath);
-      const releaseArchive = await this.fetchReleaseArchive();
+      const release = await network.get<GitHubRelease>('https://api.github.com/repos/Lelberto/kaktus/releases/latest');
+      this.log(`Downloading latest Kaktus release from ${release.zipball_url}`);
+      const releaseArchive = await network.get<ArrayBuffer>(release.zipball_url, { responseType: 'arraybuffer' });
       files.write(archivePath, releaseArchive);
       const extractDirPath = await files.extractArchive(archivePath, appPath, { exclude: ['package-lock.json', 'LICENCE'] });
       this.log('Generating application');
@@ -46,12 +50,5 @@ export default class NewCommand extends Command {
     } catch (err) {
       this.error(`Could not create application : ${err}`);
     }
-  }
-
-  private async fetchReleaseArchive(): Promise<ArrayBuffer> {
-    const releaseRes = await axios.get<GitHubRelease>('https://api.github.com/repos/Lelberto/kaktus/releases/latest');
-    this.log(`Downloading latest Kaktus release from ${releaseRes.data.zipball_url}`);
-    const fileRes = await axios.get<ArrayBuffer>(releaseRes.data.zipball_url, { responseType: 'arraybuffer' });
-    return fileRes.data;
   }
 }
