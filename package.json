@@ -1,7 +1,7 @@
 {
   "name": "kaktus-cli",
   "description": "CLI for Kaktus",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "author": "Lelberto @Lelberto",
   "bin": {
     "kaktus": "./bin/run"
@@ -46,7 +46,7 @@
     "posttest": "eslint . --ext .ts --config .eslintrc",
     "prepack": "rimraf lib && tsc -b && oclif-dev manifest && oclif-dev readme",
     "test": "echo NO TESTS",
-    "version": "oclif-dev readme && git add README.md"
+    "version": "oclif-dev readme"
   },
   "types": "lib/index.d.ts",
   "dependencies": {
