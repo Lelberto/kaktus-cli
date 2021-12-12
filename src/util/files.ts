@@ -1,6 +1,16 @@
 import extract = require('extract-zip');
-import { existsSync, lstatSync, mkdirSync, readdirSync, renameSync, rmdirSync, unlinkSync, writeFileSync } from 'fs';
+import { copyFileSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, renameSync, rmdirSync, unlinkSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
+
+/**
+ * Reads a file.
+ * 
+ * @param filePath Path to file
+ * @returns File content
+ */
+export function read(filePath: string): string {
+  return readFileSync(filePath).toString();
+}
 
 /**
  * Writes a file.
@@ -8,7 +18,7 @@ import { resolve } from 'path';
  * @param filePath Path to file
  * @param data Data to write
  */
-export function write<T>(filePath: string, data?: T): void {
+export function write(filePath: string, data: string | Buffer | ArrayBuffer | DataView = ''): void {
   writeFileSync(filePath, data);
 }
 
@@ -29,6 +39,16 @@ export function unlink(filePath: string): void {
  */
 export function move(fileSrcPath: string, fileDestPath: string): void {
   renameSync(fileSrcPath, fileDestPath);
+}
+
+/**
+ * Copies a file.
+ * 
+ * @param fileSrcPath File source path
+ * @param fileDestPath File destination path
+ */
+ export function copy(fileSrcPath: string, fileDestPath: string): void {
+  copyFileSync(fileSrcPath, fileDestPath);
 }
 
 /**
@@ -74,6 +94,25 @@ export function moveDirectory(srcPath: string, destPath: string): void {
       deleteDirectory(fileSourcePath);
     } else {
       move(fileSourcePath, fileDestPath);
+    }
+  }
+}
+
+/**
+ * Copies a directory.
+ * 
+ * @param srcPath Directory source path
+ * @param destPath Directory destination path
+ */
+ export function copyDirectory(srcPath: string, destPath: string): void {
+  for (const fileName of readdirSync(srcPath)) {
+    const fileSourcePath = resolve(srcPath, fileName);
+    const fileDestPath = resolve(destPath, fileName)
+    if (lstatSync(fileSourcePath).isDirectory()) {
+      createDirectory(fileDestPath);
+      copyDirectory(fileSourcePath, fileDestPath);
+    } else {
+      copy(fileSourcePath, fileDestPath);
     }
   }
 }
