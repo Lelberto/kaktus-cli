@@ -7,9 +7,10 @@ CLI for the [Kaktus framework](https://github.com/Lelberto/kaktus)
 [![Downloads/week](https://img.shields.io/npm/dw/kaktus-cli.svg)](https://npmjs.org/package/kaktus-cli)
 [![License](https://img.shields.io/npm/l/kaktus-cli.svg)](https://github.com/Lelberto/kaktus-cli/blob/master/package.json)
 
-<!-- Summary -->
+<!-- toc -->
 * [Usage](#usage)
 * [Commands](#commands)
+<!-- tocstop -->
 # Install
 ```sh-session
 $ npm install -g kaktus-cli
@@ -17,6 +18,7 @@ OR
 $ npx kaktus-cli ...
 ```
 # Commands
+<!-- commands -->
 * [`kaktus help [COMMAND]`](#kaktus-help-command)
 * [`kaktus new APPNAME`](#kaktus-new-appname)
 ## `kaktus new APPNAME`
@@ -49,3 +51,4 @@ OPTIONS
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.12/src/commands/help.ts)_
+<!-- commandsstop -->
